@@ -54,7 +54,7 @@ tribble(
 
 # Publications
 
-```{r publist, eval=TRUE}
+```{r publist, eval=FALSE}
 # library(dplyr)
 # knitr::write_bib(c("vitae", "tibble"), "mypapers.bib")
 
@@ -76,6 +76,21 @@ edu %>%
     where = `education-summary.organization.address.city`
   )
 ```
+
+# Invited Positions
+```{r ip}
+ip <- do.call("rbind",
+  rorcid::orcid_invited_positions("0000-0002-2767-1053")$`0000-0002-2767-1053`$`affiliation-group`$summaries
+  )
+ip %>%
+  detailed_entries(
+    what = glue::glue("{`invited-position-summary.role-title`}, {`invited-position-summary.department-name`}"),
+    when = glue::glue("{`invited-position-summary.start-date.year.value`} - {`invited-position-summary.end-date.year.value`}"),
+    with = `invited-position-summary.organization.name`,
+    where = `invited-position-summary.organization.address.city`
+  )
+```
+
 
 # Try
 
