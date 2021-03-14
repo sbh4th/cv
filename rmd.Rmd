@@ -1,0 +1,142 @@
+---
+name: Sam
+surname: Harper
+position: "Associate Professor"
+address: "Department of Epidemiology and Biostatistics"
+phone: +1 514 398 2856
+www: samharper.org
+email: "sam.harper@mcgill.ca"
+twitter: sbh4th
+github: sbh4th
+date: "`r format(Sys.time(), '%B %Y')`"
+output: 
+  vitae::hyndman:
+    latex_engine: pdflatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(rorcid)
+library(scholar)
+library(glue)
+library(stringi)
+library(rpublons)
+```
+
+# Education
+
+```{r}
+library(tibble)
+tribble(
+  ~ Degree, ~ Year, ~ Institution, ~ Where,
+  "Informal studies", "1889-91", "Flying University", "Warsaw, Poland",
+  "Master of Physics", "1893", "Sorbonne Université", "Paris, France",
+  "Master of Mathematics", "1894", "Sorbonne Université", "Paris, France"
+) %>% 
+  detailed_entries(Degree, Year, Institution, Where)
+```
+
+# Nobel Prizes
+
+```{r}
+tribble(
+  ~Year, ~Type, ~Desc,
+  1903, "Physics", "Awarded for her work on radioactivity with Pierre Curie and Henri Becquerel",
+  1911, "Chemistry", "Awarded for the discovery of radium and polonium"
+) %>% 
+  brief_entries(
+    glue::glue("Nobel Prize in {Type}"),
+    Year, 
+    Desc
+  )
+```
+
+# Publications
+
+```{r publist, eval=TRUE}
+# library(dplyr)
+# knitr::write_bib(c("vitae", "tibble"), "mypapers.bib")
+
+bibliography_entries("mypapers.bib") %>%
+ arrange(desc(issued))
+```
+
+# Education Again
+
+```{r education}
+edu <- do.call("rbind",
+  rorcid::orcid_educations("0000-0002-2767-1053")$`0000-0002-2767-1053`$`affiliation-group`$summaries
+)
+edu %>%
+  detailed_entries(
+    what = glue::glue("{`education-summary.role-title`}, {`education-summary.department-name`}"),
+    when = glue::glue("{`education-summary.start-date.year.value`} - {`education-summary.end-date.year.value`}"),
+    with = `education-summary.organization.name`,
+    where = `education-summary.organization.address.city`
+  )
+```
+
+# Try
+
+```{r try, eval=FALSE}
+try <- do.call("rbind",
+  rorcid::orcid_works("0000-0002-2767-1053")$`0000-0002-2767-1053`
+)
+try %>%
+  detailed_entries(
+    what = `title.title.value`,
+    when = `publication-date.year.value`,
+    with = `source.assertion-origin-name.value`,
+    where = `journal-title.value`
+  )
+```
+
+
+# Publications
+
+```{r pubs, eval=FALSE}
+pubs <- do.call("rbind",
+  rorcid::orcid_works("0000-0002-2767-1053")$`0000-0002-2767-1053`$`works
+)
+# pubs %>%
+#  detailed_entries(
+#    what = `title.title.value` ,
+#    when = `put-code` ,
+#    with = `path` ,
+#    where = `visibility` ,
+#    why = `title.subtitle` 
+#  )
+```
+
+# Works 
+
+```{r works, eval=FALSE}
+works <- do.call("rbind",
+  rorcid::works("0000-0002-2767-1053"))
+  
+  as_tibble() %>%
+  janitor::clean_names() %>%
+# works %>%
+  detailed_entries(
+    what = title_title_value ,
+    when = put_code ,
+    with = path ,
+    where = visibility ,
+    why = NULL
+  )
+```
+
+# GScholar
+```{r publications, eval=FALSE}
+scholar::get_publications("Ipf8idcAAAAJ&hl") %>% 
+  filter(!is.na(year) & journal!="" & year>2015) %>%
+  arrange(-year) %>%
+  detailed_entries(
+    what = stringi::stri_trans_general(title, "Latin-ASCII"),
+    when = year,
+    with = glue::glue("Citations: {cites}"),
+    where = glue::glue("{title} {journal} {year};{number}  Citations: {cites}")
+  )
+```
+
