@@ -22,6 +22,7 @@ library(scholar)
 library(glue)
 library(stringi)
 library(rpublons)
+library(janitor)
 ```
 
 # Education
@@ -91,6 +92,38 @@ ip %>%
   )
 ```
 
+# Funding
+## Current
+```{r fundsc, eval=TRUE}
+funds <- do.call("rbind",
+  rorcid::orcid_fundings("0000-0002-2767-1053")$`0000-0002-2767-1053`$`group`$`funding-summary`)
+funds %>%
+ filter(`end-date.year.value` >= as.integer(format(Sys.Date(), "%Y")) ) %>%
+  arrange(desc(`end-date.year.value`)) %>%
+  detailed_entries(
+    what = `title.title.value`,
+    when = glue::glue("{`start-date.year.value`} - {`end-date.year.value`}"),
+    with = `organization.name`,
+    where = `url.value`
+  )
+
+```
+
+## Past
+```{r fundp, eval=TRUE}
+funds <- do.call("rbind",
+  rorcid::orcid_fundings("0000-0002-2767-1053")$`0000-0002-2767-1053`$`group`$`funding-summary`)
+funds %>%
+ filter(`end-date.year.value` < as.integer(format(Sys.Date(), "%Y")) ) %>%
+  arrange(desc(`end-date.year.value`)) %>%
+  detailed_entries(
+    what = `title.title.value`,
+    when = glue::glue("{`start-date.year.value`} - {`end-date.year.value`}"),
+    with = `organization.name`,
+    where = `url.value`
+  )
+
+```
 
 # Try
 
@@ -98,7 +131,7 @@ ip %>%
 try <- do.call("rbind",
   rorcid::orcid_works("0000-0002-2767-1053")$`0000-0002-2767-1053`
 )
-try %>%
+try %>% filter(!is.na(`publication-date.month.value`)) %>% 
   detailed_entries(
     what = `title.title.value`,
     when = `publication-date.year.value`,
@@ -126,13 +159,13 @@ pubs <- do.call("rbind",
 
 # Works 
 
-```{r works, eval=FALSE}
+```{r works, eval=TRUE}
 works <- do.call("rbind",
   rorcid::works("0000-0002-2767-1053"))
   
   as_tibble() %>%
   janitor::clean_names() %>%
-# works %>%
+works %>%
   detailed_entries(
     what = title_title_value ,
     when = put_code ,
@@ -143,15 +176,41 @@ works <- do.call("rbind",
 ```
 
 # GScholar
-```{r publications, eval=FALSE}
+```{r publications, eval=TRUE}
 scholar::get_publications("Ipf8idcAAAAJ&hl") %>% 
   filter(!is.na(year) & journal!="" & year>2015) %>%
   arrange(-year) %>%
   detailed_entries(
     what = stringi::stri_trans_general(title, "Latin-ASCII"),
     when = year,
-    with = glue::glue("Citations: {cites}"),
-    where = glue::glue("{title} {journal} {year};{number}  Citations: {cites}")
+    with = ,
+    where = glue::glue("{author} {journal} {year};{number}  Citations: {cites}")
   )
+```
+
+# Another one
+```{r anothertry, eval=FALSE}
+rmarkdown::pandoc_citeproc_convert("mypapers.bib", type = "list")
+vitae::bibliography_entries("mypapers.bib") %>%
+  arrange(desc(author$family), issued)
+```
+
+# Peer Review
+```{r peer, eval=FALSE}
+pr <- do.call("rbind",
+  rorcid::orcid_peer_reviews("0000-0002-2767-1053")$`0000-0002-2767-1053`$`group)
+
+pr %>%
+  as_tibble() %>%
+  janitor::clean_names() 
+
+# %>%
+# works %>%
+#  detailed_entries(
+#    what = title_title_value ,
+#    when = put_code ,
+#    with = path ,
+#    where = visibility ,
+#    why = NULL
 ```
 
